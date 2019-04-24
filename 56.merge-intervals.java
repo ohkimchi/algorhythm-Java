@@ -48,13 +48,36 @@ class Solution {
     }
 
     public List<Interval> merge(List<Interval> intervals) {
-        Collections.sort(intervals, new IntervalComparator());
-
-        LinkedList<Interval> merged = new LinkedList<Interval>();
-        for (Interval interval : intervals) {
-            if (merged.isEmpty() || merged.getLast().end < interval.start) merged.add(interval);
-            else merged.getLast().end = Math.max(merged.getLast().end, interval.end);
-        return merged;
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+        List<int[]> ret = new ArrayList<>();
+        int[] prev = null;
+        for (int[] inter : intervals) {
+            //if prev is null or curr.start > prev.end, add the interval
+            if (prev==null || inter[0] > prev[1]) {
+                ret.add(inter);
+                prev = inter;
+            } else if (inter[1] > prev[1]) {
+                // curr.end > prev.end, modify the element already in list
+                prev[1] = inter[1];
+            }
+        }
+        return ret.toArray(new int[ret.size()][2]);
     }
 }
+
+class Solution2 {
+    public int[][] merge(int[][] intervals) {
+        Arrays.sort(intervals, (a, b) -> a[0]-b[0]);
+        List<int[]> res = new ArrayList<>();
+        int[] prev = null;
+        for (int[] inter : intervals) {
+            if (prev == null || prev[1] < inter[0]) {
+                res.add(inter);
+                prev = inter;
+            } else if (prev[1] < inter[1]) prev[1] = inter[1];
+        }
+        return res.toArray(new int[res.size()][2]);
+    }
+}
+
 
