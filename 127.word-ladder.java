@@ -64,50 +64,65 @@
  *
  *
  */
+import javafx.util.Pair;
+
 class Solution {
-    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
-        int len = beginWord.length();
+  public int ladderLength(String beginWord, String endWord, List<String> wordList) {
 
-        HashMap<String, ArrayList<String>> allComboDict = new HashMap<>();
+    // Since all words are of same length.
+    int L = beginWord.length();
 
-        wordList.forEach(word -> {
-            for (int i = 0; i < len; i++) {
-                String newWord = word.substring(0, i) + "*" + word.substring(i+1, len);
-                ArrayList<String> transformations = allComboDict.getOrDefault(newWord, new ArrayList<String>());
-                transformations.add(word);
-                allComboDict.put(newWord, transformations);
-            }
+    // Dictionary to hold combination of words that can be formed,
+    // from any given word. By changing one letter at a time.
+    HashMap<String, ArrayList<String>> allComboDict = new HashMap<String, ArrayList<String>>();
+
+    wordList.forEach(
+        word -> {
+          for (int i = 0; i < L; i++) {
+            // Key is the generic word
+            // Value is a list of words which have the same intermediate generic word.
+            String newWord = word.substring(0, i) + '*' + word.substring(i + 1, L);
+            ArrayList<String> transformations =
+                allComboDict.getOrDefault(newWord, new ArrayList<String>());
+            transformations.add(word);
+            allComboDict.put(newWord, transformations);
+          }
         });
 
-        Queue<HashMap<String, Integer>> q = new LinkedList<HashMap<String, Integer>>();
-        HashMap<String, Integer> map = new HashMap<>();
-        map.put(beginWord, 1);
-        q.add(map);
+    // Queue for BFS
+    Queue<Pair<String, Integer>> Q = new LinkedList<Pair<String, Integer>>();
+    Q.add(new Pair(beginWord, 1));
 
-        HashMap<String, Boolean> visited = new HashMap<>();
-        visited.put(beginWord, true);
+    // Visited to make sure we don't repeat processing same word.
+    HashMap<String, Boolean> visited = new HashMap<String, Boolean>();
+    visited.put(beginWord, true);
 
-        while (!q.isEmpty()) {
-            Map<String, Integer> node = q.remove();
-            Map.Entry<String, Integer> entry = node.entrySet().iterator().next();
-            String word = entry.getKey();
-            int level = node.get(word);
+    while (!Q.isEmpty()) {
+      Pair<String, Integer> node = Q.remove();
+      String word = node.getKey();
+      int level = node.getValue();
+      for (int i = 0; i < L; i++) {
 
-            for (int i = 0; i < len; i++) {
-                String newWord = word.substring(0, i) + "*" + word.substring(i+1, len);
-                for (String adjacentWord : allComboDict.getOrDefault(newWord, new ArrayList<String>())) {
-                    if (adjacentWord.equals(endWord)) return level + 1;
-                    if (!visited.containsKey(adjacentWord)) {
-                        visited.put(adjacentWord, true);
-                        HashMap<String, Integer> newMap = new HashMap<>();
-                        newMap.put(adjacentWord, level + 1);
-                        q.add(newMap);
-                    }
-                }
-            }
+        // Intermediate words for current word
+        String newWord = word.substring(0, i) + '*' + word.substring(i + 1, L);
+
+        // Next states are all the words which share the same intermediate state.
+        for (String adjacentWord : allComboDict.getOrDefault(newWord, new ArrayList<String>())) {
+          // If at any point if we find what we are looking for
+          // i.e. the end word - we can return with the answer.
+          if (adjacentWord.equals(endWord)) {
+            return level + 1;
+          }
+          // Otherwise, add it to the BFS Queue. Also mark it visited
+          if (!visited.containsKey(adjacentWord)) {
+            visited.put(adjacentWord, true);
+            Q.add(new Pair(adjacentWord, level + 1));
+          }
         }
-
-        return 0;
+      }
     }
+
+    return 0;
+  }
 }
 
